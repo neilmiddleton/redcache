@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "fernet", "~> 2.1"
   spec.add_dependency "redis", "~> 3.1"
+  spec.add_dependency "multi_json", "~> 1.10"
 end
