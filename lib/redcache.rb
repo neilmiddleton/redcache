@@ -9,6 +9,16 @@ module Redcache
       yield(configuration)
     end
 
+    def cache(redis_key, &block)
+      return block.call if skip_cache?
+      if redis_up?
+        value = read_from_cache(redis_key, block) || write_into_cache(redis_key, block)
+        return value unless value.nil?
+      else
+        block.call
+      end
+    end
+
     def configuration
       @configuration ||= Configuration.new
     end
@@ -39,34 +49,26 @@ module Redcache
       configuration.stale_time
     end
 
-    def cache(redis_key, &block)
-      return block.call if skip_cache?
-      if redis_up?
-        value = read_from_cache(redis_key, block) || write_into_cache(redis_key, block)
-        return value unless value.nil?
-      else
-        block.call
-      end
-    end
-
     def skip_cache?
       configuration.skip_cache
     end
 
     def read_from_cache(redis_key, block)
       value = get_value(redis_key)
-      if value.nil?
-        log("cache.miss")
-      else
-        log("cache.hit")
-      end
-      if key_stale?(redis_key) && !value.nil?
-        log("cache.stale_refresh")
-        Thread.new do
-          write_into_cache(redis_key, block)
-        end
-      end
+      value.nil? ? log("cache.miss") : log("cache.hit")
+      refresh_cache(redis_key, block) if key_stale?(redis_key) && !value.nil?
       return value
+    end
+
+    def test?
+      ENV["RACK_ENV"] == 'test'
+    end
+
+    def refresh_cache(redis_key, block)
+      log("cache.stale_refresh")
+      Thread.new do
+        write_into_cache(redis_key, block)
+      end
     end
 
     def write_into_cache(redis_key, block)
