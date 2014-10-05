@@ -55,7 +55,7 @@ module Redcache
 
     def read_from_cache(redis_key, block)
       value = get_value(redis_key)
-      value.nil? ? log("cache.miss") : log("cache.hit")
+      value.nil? ? log("cache.miss", redis_key) : log("cache.hit", redis_key)
       refresh_cache(redis_key, block) if key_stale?(redis_key) && !value.nil?
       return value
     end
@@ -65,7 +65,7 @@ module Redcache
     end
 
     def refresh_cache(redis_key, block)
-      log("cache.stale_refresh")
+      log("cache.stale_refresh", redis_key)
       Thread.new do
         write_into_cache(redis_key, block)
       end
@@ -74,7 +74,7 @@ module Redcache
     def write_into_cache(redis_key, block)
       json = block.call
       with_redis do
-        log("cache.write")
+        log("cache.write", redis_key)
         set_value(redis_key, json)
       end
       json
@@ -114,8 +114,8 @@ module Redcache
       configuration.secret
     end
 
-    def log(str)
-      configuration.logger.log(log_prefix(str) => 1)
+    def log(str, key)
+      configuration.logger.log(log_prefix(str) => 1, :key => key)
     end
 
     def log_prefix(str)
