@@ -83,6 +83,10 @@ information</td>
   </tr>
 </table>
 
+## Testing
+
+Specs to come ;)
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/redcache/fork )
