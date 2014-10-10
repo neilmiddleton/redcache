@@ -6,6 +6,7 @@ module Redcache
     attr_accessor :stale_time
     attr_accessor :encrypt
     attr_accessor :skip_cache
+    attr_accessor :silent
     attr_accessor :logger
     attr_accessor :log_prefix
 
@@ -15,6 +16,7 @@ module Redcache
       @encrypt = false
       @secret = nil
       @skip_cache = false
+      @silent = false
       @logger = nil
       @log_prefix = "redcache"
     end
