@@ -14,12 +14,12 @@ module Redcache
       yield(configuration)
     end
 
-    def cache(redis_key, &block)
+    def cache(redis_key, *args, &block)
       # return immediately if we shouldn't or can't cache
-      return block.call if skip_cache? || !redis_up?
+      return block.call(*args) if skip_cache? || !redis_up?
       with_redis do
         # attempt to read from cache, running and caching the block if cold
-        value = read_from_cache(redis_key, block)
+        value = read_from_cache(redis_key, *args, &block)
         if value.nil?
           value = block.call if value.nil?
           write_into_cache(redis_key, value)
@@ -28,17 +28,17 @@ module Redcache
       end
     end
 
-    def read_from_cache(redis_key, block)
+    def read_from_cache(redis_key, *args, &block)
       value = get_value(redis_key)
       value.nil? ? log("cache.miss", redis_key) : log("cache.hit", redis_key)
-      refresh_cache(redis_key, block) if key_stale?(redis_key) && !value.nil?
+      refresh_cache(redis_key, *args, &block) if key_stale?(redis_key) && !value.nil?
       return value
     end
 
-    def refresh_cache(redis_key, block)
+    def refresh_cache(redis_key, *args, &block)
       log("cache.stale_refresh", redis_key)
-      Thread.new do
-        write_into_cache(redis_key, block.call)
+      Thread.new(*args) do |*thread_args|
+        write_into_cache(redis_key, block.call(*thread_args))
       end
     end
 
