@@ -8,13 +8,17 @@ Redcache.configure do |c|
 end
 
 class Dummy
+  def self.uuid
+    SecureRandom.uuid
+  end
+
   def self.run
-    Redcache.cache "foo" do
-      get_value
+    Redcache.cache "foo", uuid do |uuid|
+      get_value(uuid)
     end
   end
 
-  def self.get_value
+  def self.get_value(uuid=nil)
     "bar"
   end
 end
@@ -55,9 +59,11 @@ describe Redcache do
     end
 
     it 'skips cache when redis is down' do
+      random = SecureRandom.uuid
+      allow(Dummy).to receive(:uuid){ random }
       allow(rc).to receive(:redis_up?){ false }
       expect(rc).to_not receive(:read_from_cache)
-      expect(Dummy).to receive(:get_value)
+      expect(Dummy).to receive(:get_value).with(random){ "bar" }
       Dummy.run
     end
 
