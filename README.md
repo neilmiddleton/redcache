@@ -42,6 +42,15 @@ value = Redcache.cache "unique_cache_key" do
 end
 ```
 
+arguments can also be passed into Redcache is needed for when your stale
+refreshes are run:
+
+```
+value = Redcache.cache "unique_cache_key", api, id do |api, id|
+  api.call_to_slow_service id
+end
+```
+
 ### Configuration
 
 Several configuration options are available to use that defined the behaviour of
