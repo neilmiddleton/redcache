@@ -21,7 +21,7 @@ module Redcache
         # attempt to read from cache, running and caching the block if cold
         value = read_from_cache(redis_key, *args, &block)
         if value.nil?
-          value = block.call if value.nil?
+          value = block.call(*args) if value.nil?
           write_into_cache(redis_key, value)
         end
         return value
