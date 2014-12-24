@@ -87,7 +87,7 @@ module Redcache
     def redis_up?
       begin
         redis.ping
-      rescue Redis::CannotConnectError
+      rescue Redis::CannotConnectError, Timeout::Error
         puts "Redis is DOWN! :shitsonfire:"
         return false
       end

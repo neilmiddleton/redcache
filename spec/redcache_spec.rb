@@ -52,6 +52,11 @@ describe Redcache do
       Dummy.run
     end
 
+    it 'shows redis as down if it times out' do
+      allow(rc.redis).to receive(:ping){ raise Timeout::Error }
+      expect(rc.redis_up?).to eq(false)
+    end
+
     it 'triggers a cache write if the cache is cold' do
       allow(rc).to receive(:read_from_cache){ nil }
       expect(rc).to receive(:write_into_cache) { "" }
